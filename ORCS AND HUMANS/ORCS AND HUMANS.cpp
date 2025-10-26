@@ -143,11 +143,13 @@ int active_unit_number = -1;
 int scale_x{ 0 };
 int scale_y{ 0 };
 
+float relative_x{ -150.0f };
+float relative_y{ -100.0f };
+
+
 ////////////////////////////////////////////////////////
 
 std::vector<dll::ASSETS*> vAssets;
-
-
 
 ////////////////////////////////////////////////////////
 
@@ -277,11 +279,11 @@ void InitGame()
                 (float)(RandGen(0,(int)(1250.0f))),(float)(RandGen(0,(int)(950.0f)))) };
             if (!vAssets.empty())for (int k = 0; k < vAssets.size(); ++k)
             {
-                FRECT DummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->start.x,dummy->end.y),
+                FRECT DummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
                 FPOINT(dummy->start.x,dummy->end.y),FPOINT(dummy->end.x,dummy->end.y) };
 
                 FRECT AssetRect{ FPOINT(vAssets[k]->start.x,vAssets[k]->start.y),
-                    FPOINT(vAssets[k]->start.x,vAssets[k]->end.y),
+                    FPOINT(vAssets[k]->end.x,vAssets[k]->start.y),
                     FPOINT(vAssets[k]->start.x,vAssets[k]->end.y),
                     FPOINT(vAssets[k]->end.x,vAssets[k]->end.y) };
                 if (dll::Intersect(DummyRect, AssetRect))
@@ -294,6 +296,8 @@ void InitGame()
         }
     }
 
+    
+
 }
 
 D2D1_RECT_F MoveViewPort(dirs to_where)
@@ -305,21 +309,7 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
         if (ViewPort.start.x - 5.0f >= 0)
         {
             ViewPort.start.x -= 5.0f;
-            if (!vAssets.empty())
-            {
-                for (int i = 0; i < vAssets.size(); ++i)
-                {
-                    vAssets[i]->start.x -= 5.0f;
-                    vAssets[i]->SetEdges();
-                }
-            }
-        }
-        break;
-
-    case dirs::left:
-        if (ViewPort.end.x + 5.0f <= 1300.0f)
-        {
-            ViewPort.start.x += 5.0f;
+            relative_x += 5.0f;
             if (!vAssets.empty())
             {
                 for (int i = 0; i < vAssets.size(); ++i)
@@ -331,15 +321,32 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
         }
         break;
 
-    case dirs::down:
-        if (ViewPort.start.y - 5.0f >= 0)
+    case dirs::left:
+        if (ViewPort.end.x + 5.0f <= 1300.0f)
         {
-            ViewPort.start.y -= 5.0f;
+            ViewPort.start.x += 5.0f;
+            relative_x -= 5.0f;
             if (!vAssets.empty())
             {
                 for (int i = 0; i < vAssets.size(); ++i)
                 {
-                    vAssets[i]->start.y -= 5.0f;
+                    vAssets[i]->start.x -= 5.0f;
+                    vAssets[i]->SetEdges();
+                }
+            }
+        }
+        break;
+
+    case dirs::down:
+        if (ViewPort.start.y - 5.0f >= 0)
+        {
+            ViewPort.start.y -= 5.0f;
+            relative_y += 5.0f;
+            if (!vAssets.empty())
+            {
+                for (int i = 0; i < vAssets.size(); ++i)
+                {
+                    vAssets[i]->start.y += 5.0f;
                     vAssets[i]->SetEdges();
                 }
             }
@@ -350,11 +357,12 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
         if (ViewPort.end.y + 5.0f <= 1050.0f)
         {
             ViewPort.start.y += 5.0f;
+            relative_y -= 5.0f;
             if (!vAssets.empty())
             {
                 for (int i = 0; i < vAssets.size(); ++i)
                 {
-                    vAssets[i]->start.y += 5.0f;
+                    vAssets[i]->start.y -= 5.0f;
                     vAssets[i]->SetEdges();
                 }
             }
@@ -390,43 +398,48 @@ bool GetAssetsViewPort(dll::ASSETS* which,D2D1_RECT_F& AssetViewPort)
     bool in_width = false;
     bool in_height = false;
 
-    if (which->start.x < ViewPort.start.x)
+    if (which->start.x <= ViewPort.start.x + relative_x)
     {
-        if (which->end.x > ViewPort.start.x)
+        if (which->end.x > ViewPort.start.x + relative_x)
         {
             AssetViewPort.left = which->start.x;
             AssetViewPort.right = which->end.x;
             in_width = true;
         }
     }
-    else if (which->start.x < ViewPort.end.x)
+    else
     {
-        AssetViewPort.left = which->start.x;
-        AssetViewPort.right = which->end.x;
-        in_width = true;
+        if (which->start.x < ViewPort.end.x + relative_x)
+        {
+            AssetViewPort.left = which->start.x;
+            AssetViewPort.right = which->end.x;
+            in_width = true;
+        }
     }
 
-    if (which->start.y < ViewPort.start.y)
+    if (which->start.y <= ViewPort.start.y + relative_y)
     {
-        if (which->end.y > ViewPort.start.y)
+        if (which->end.y > ViewPort.start.y + relative_y)
         {
             AssetViewPort.top = which->start.y;
             AssetViewPort.bottom = which->end.y;
             in_height = true;
         }
     }
-    else if (which->start.y < ViewPort.end.y)
+    else
     {
-        AssetViewPort.top = which->start.y;
-        AssetViewPort.bottom = which->end.y;
-        in_height = true;
+        if (which->start.y < ViewPort.end.y + relative_y)
+        {
+            AssetViewPort.top = which->start.y;
+            AssetViewPort.bottom = which->end.y;
+            in_height = true;
+        }
     }
-    
+
     if (in_width && in_height)in_viewport = true;
 
     return in_viewport;
 }
-
 
 INT_PTR CALLBACK DlgProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1254,8 +1267,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         // DRAW THINGS ***********************************************
 
         Draw->BeginDraw();
-        Draw->DrawBitmap(bmpField, D2D1::RectF(0, 50.0f, scr_width, scr_height), 1.0f,
-            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, GetViewPort());
+        Draw->DrawBitmap(bmpField, D2D1::RectF(0, 50, scr_width, scr_height), 1.0f,  D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+            GetViewPort());
         
         if (statBckgBrush && b1BckgBrush && b2BckgBrush && b3BckgBrush && txtBrush
             && hgltBrush && inactBrush && nrmTextFormat)
@@ -1286,7 +1299,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             {
                 D2D1_RECT_F View{};
 
-                if (GetAssetsViewPort(vAssets[i], View) && View.top > 50.0f)
+                if (GetAssetsViewPort(vAssets[i], View) && View.top >= 50.0f)
                 {
                     switch (vAssets[i]->type)
                     {
@@ -1309,8 +1322,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 }
             }
         }
-
-
 
 
 
