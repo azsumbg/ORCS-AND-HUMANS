@@ -151,6 +151,10 @@ float relative_y{ -100.0f };
 
 std::vector<dll::ASSETS*> vAssets;
 
+dll::ASSETS* HumanCastle{ nullptr };
+dll::ASSETS* OrcCastle{ nullptr };
+
+
 ////////////////////////////////////////////////////////
 
 template<typename T>concept HasRelease = requires(T var)
@@ -276,7 +280,7 @@ void InitGame()
             is_ok = true;
 
             dll::ASSETS* dummy{ dll::AssetFactory(static_cast<obstacle>(RandGen(0,3)),
-                (float)(RandGen(0,(int)(1250.0f))),(float)(RandGen(0,(int)(950.0f)))) };
+                (float)(RandGen(280,(int)(1050.0f))),(float)(RandGen(0,(int)(950.0f)))) };
             if (!vAssets.empty())for (int k = 0; k < vAssets.size(); ++k)
             {
                 FRECT DummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
@@ -296,7 +300,39 @@ void InitGame()
         }
     }
 
-    
+    ClearMem(&HumanCastle);
+    ClearMem(&OrcCastle);
+
+    bool castle_ok{ false };
+    while (!castle_ok)
+    {
+        castle_ok = true;
+        dll::ASSETS* dummy{ dll::AssetFactory(obstacle::human_castle,(float)(RandGen(0,400)),(float)(RandGen(50,540))) };
+
+        if (!vAssets.empty())
+        {
+            for (int i = 0; i < vAssets.size(); ++i)
+            {
+                FRECT DummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
+                FPOINT(dummy->start.x,dummy->end.y),FPOINT(dummy->end.x,dummy->end.y) };
+
+                FRECT AssetRect{ FPOINT(vAssets[i]->start.x,vAssets[i]->start.y),
+                    FPOINT(vAssets[i]->end.x,vAssets[i]->start.y),
+                    FPOINT(vAssets[i]->start.x,vAssets[i]->end.y),
+                    FPOINT(vAssets[i]->end.x,vAssets[i]->end.y) };
+                if (dll::Intersect(DummyRect, AssetRect))
+                {
+                    castle_ok = false;
+                    break;
+                }
+            }
+        }
+
+        if (castle_ok)HumanCastle = dummy;
+    }
+ 
+    castle_ok = false;
+
 }
 
 D2D1_RECT_F MoveViewPort(dirs to_where)
@@ -317,6 +353,11 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->SetEdges();
                 }
             }
+            if (HumanCastle)
+            {
+                HumanCastle->start.x += 5.0f;
+                HumanCastle->SetEdges();
+            }
         }
         break;
 
@@ -332,6 +373,11 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->start.x -= 5.0f;
                     vAssets[i]->SetEdges();
                 }
+            }
+            if (HumanCastle)
+            {
+                HumanCastle->start.x -= 5.0f;
+                HumanCastle->SetEdges();
             }
         }
         break;
@@ -349,6 +395,11 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->SetEdges();
                 }
             }
+            if (HumanCastle)
+            {
+                HumanCastle->start.y += 5.0f;
+                HumanCastle->SetEdges();
+            }
         }
         break;
 
@@ -364,6 +415,11 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->start.y -= 5.0f;
                     vAssets[i]->SetEdges();
                 }
+            }
+            if (HumanCastle)
+            {
+                HumanCastle->start.y -= 5.0f;
+                HumanCastle->SetEdges();
             }
         }
         break;
@@ -1314,6 +1370,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
 
+        if (HumanCastle)
+        {
+            D2D1_RECT_F View{};
+            int aframe = HumanCastle->GetFrame();
+
+            if (GetAssetsViewPort(HumanCastle, View))
+                Draw->DrawBitmap(bmpHCastle[aframe], Resizer(bmpHCastle[aframe], HumanCastle->start.x, HumanCastle->start.y));
+        }
 
 
         Draw->EndDraw();
