@@ -91,7 +91,7 @@ namespace dll
 		{
 			if (m_ptr)
 			{
-				if (next_pos + 1 < max_size)
+				if (next_pos + 1 <= max_size)
 				{
 					m_ptr[next_pos] = element;
 					++next_pos;
@@ -115,7 +115,7 @@ namespace dll
 		{
 			if (m_ptr)
 			{
-				if (next_pos + 1 < max_size)
+				if (next_pos + 1 <= max_size)
 				{
 					m_ptr[next_pos] = (*element);
 					++next_pos;
@@ -321,7 +321,7 @@ namespace dll
 	template<typename T>concept primes = std::is_same<T, int>::value || std::is_same<T, float>::value
 		|| std::is_same<T, double>::value || std::is_same<T, long>::value || std::is_same<T, char>::value;
 
-	template<primes T> void Sort(BAG<T>& bag, bool ascending = true)
+	template<primes T> void SortPrimes(BAG<T>& bag, bool ascending = true)
 	{
 		if (bag.size() > 1)
 		{

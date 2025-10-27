@@ -268,7 +268,7 @@ void InitGame()
     active_unit_number = -1;
 
     if (!vAssets.empty())for (int i = 0; i < vAssets.size(); ++i)ClearMem(&vAssets[i]);
-    for (int i = 0; i < 100; ++i)
+    for (int i = 0; i < 50; ++i)
     {
         bool is_ok = false;
         while (!is_ok)
@@ -297,7 +297,6 @@ void InitGame()
     }
 
     
-
 }
 
 D2D1_RECT_F MoveViewPort(dirs to_where)
@@ -627,26 +626,18 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         }
         break;
 
-    case WM_KEYDOWN:
-        switch (LOWORD(wParam))
+    case WM_MOUSEMOVE:
         {
-        case VK_UP:
-            MoveViewPort(dirs::up);
-            break;
+            float mouse_x = LOWORD(lParam);
+            float mouse_y = HIWORD(lParam);
 
-        case VK_DOWN:
-            MoveViewPort(dirs::down);
-            break;
-
-        case VK_LEFT:
-            MoveViewPort(dirs::left);
-            break;
-
-        case VK_RIGHT:
-            MoveViewPort(dirs::right);
-            break;
+            if (mouse_x * scale_x <= 50.0f)MoveViewPort(dirs::left);
+            else if (mouse_x * scale_x >= scr_width - 50.0f)MoveViewPort(dirs::right);
+            else if (mouse_y * scale_y <= 80.0f)MoveViewPort(dirs::up);
+            else if (mouse_y * scale_y >= ground - 50.0f)MoveViewPort(dirs::down);
         }
         break;
+
 
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
