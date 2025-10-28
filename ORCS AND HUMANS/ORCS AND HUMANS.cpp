@@ -38,6 +38,11 @@ constexpr int no_record{ 2001 };
 constexpr int first_record{ 2002 };
 constexpr int record{ 2003 };
 
+constexpr int worker_price{ 50 };
+constexpr int warrior_price{ 100 };
+constexpr int archer_price{ 120 };
+constexpr int worker_knight{ 200 };
+
 //////////////////////////////////////////////////////
 
 WNDCLASS bWinClass{};
@@ -150,7 +155,7 @@ float relative_y{ -100.0f };
 ////////////////////////////////////////////////////////
 
 std::vector<dll::ASSETS*> vAssets;
-
+std::vector<dll::ASSETS*> vMines;
 dll::ASSETS* HumanCastle{ nullptr };
 dll::ASSETS* OrcCastle{ nullptr };
 
@@ -264,8 +269,8 @@ void InitGame()
     wcscpy_s(current_player, L"ONE KING");
 
     score = 0;
-    human_gold = 0;
-    orc_gold = 0;
+    human_gold = 200;
+    orc_gold = 300;
     human_lumber = 0;
     orc_lumber = 0;
 
@@ -280,7 +285,7 @@ void InitGame()
             is_ok = true;
 
             dll::ASSETS* dummy{ dll::AssetFactory(static_cast<obstacle>(RandGen(0,3)),
-                (float)(RandGen(280,(int)(1050.0f))),(float)(RandGen(0,(int)(950.0f)))) };
+                (float)(RandGen(280,(int)(800.0f))),(float)(RandGen(0,(int)(950.0f)))) };
             if (!vAssets.empty())for (int k = 0; k < vAssets.size(); ++k)
             {
                 FRECT DummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
@@ -299,6 +304,8 @@ void InitGame()
             if (is_ok)vAssets.push_back(dummy);
         }
     }
+
+    if (!vMines.empty())for (int i = 0; i < vMines.size(); ++i)ClearMem(&vMines[i]);
 
     ClearMem(&HumanCastle);
     ClearMem(&OrcCastle);
@@ -332,7 +339,106 @@ void InitGame()
     }
  
     castle_ok = false;
+    while (!castle_ok)
+    {
+        castle_ok = true;
+        dll::ASSETS* dummy{ dll::AssetFactory(obstacle::orc_castle,(float)(RandGen(810, 1000)),(float)(RandGen(50,540))) };
+        if (!vAssets.empty())
+        {
+            for (int i = 0; i < vAssets.size(); ++i)
+            {
+                FRECT dummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
+                FPOINT(dummy->start.x,dummy->end.y),FPOINT(dummy->end.x,dummy->end.y) };
+                FRECT assetRect{ FPOINT(vAssets[i]->start.x,vAssets[i]->start.y),FPOINT(vAssets[i]->end.x,
+                    vAssets[i]->start.y), FPOINT(vAssets[i]->start.x, vAssets[i]->end.y),
+                    FPOINT(vAssets[i]->end.x,vAssets[i]->end.y) };
 
+                if (dll::Intersect(dummyRect, assetRect))
+                {
+                    castle_ok = false;
+                    break;
+                }
+            }
+        }
+
+        if (castle_ok)OrcCastle = dummy;
+    }
+
+    /////////////////////////////////////////
+
+    castle_ok = false;
+    while (!castle_ok)
+    {
+        castle_ok = true;
+        dll::ASSETS* dummy{ dll::AssetFactory(obstacle::mine,(float)(RandGen(800, 1170)),(float)(RandGen(50,540))) };
+        if (!vAssets.empty())
+        {
+            for (int i = 0; i < vAssets.size(); ++i)
+            {
+                FRECT dummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
+                FPOINT(dummy->start.x,dummy->end.y),FPOINT(dummy->end.x,dummy->end.y) };
+                FRECT assetRect{ FPOINT(vAssets[i]->start.x,vAssets[i]->start.y),FPOINT(vAssets[i]->end.x,
+                    vAssets[i]->start.y), FPOINT(vAssets[i]->start.x, vAssets[i]->end.y),
+                    FPOINT(vAssets[i]->end.x,vAssets[i]->end.y) };
+
+                if (dll::Intersect(dummyRect, assetRect))
+                {
+                    castle_ok = false;
+                    break;
+                }
+            }
+        }
+        
+        if (OrcCastle)
+        {
+            FRECT dummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
+                FPOINT(dummy->start.x,dummy->end.y),FPOINT(dummy->end.x,dummy->end.y) };
+            FRECT assetRect{ FPOINT(OrcCastle->start.x,OrcCastle->start.y),FPOINT(OrcCastle->end.x,
+                OrcCastle->start.y), FPOINT(OrcCastle->start.x, OrcCastle->end.y),
+                FPOINT(OrcCastle->end.x,OrcCastle->end.y) };
+            if (dll::Intersect(dummyRect, assetRect))castle_ok = false;
+        }
+        
+        if (castle_ok)vMines.push_back(dummy);
+    }
+
+    castle_ok = false;
+    while (!castle_ok)
+    {
+        castle_ok = true;
+        dll::ASSETS* dummy{ dll::AssetFactory(obstacle::mine,(float)(RandGen(0,400)),(float)(RandGen(50,540))) };
+        if (!vAssets.empty())
+        {
+            for (int i = 0; i < vAssets.size(); ++i)
+            {
+                FRECT dummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
+                FPOINT(dummy->start.x,dummy->end.y),FPOINT(dummy->end.x,dummy->end.y) };
+                FRECT assetRect{ FPOINT(vAssets[i]->start.x,vAssets[i]->start.y),FPOINT(vAssets[i]->end.x,
+                    vAssets[i]->start.y), FPOINT(vAssets[i]->start.x, vAssets[i]->end.y),
+                    FPOINT(vAssets[i]->end.x,vAssets[i]->end.y) };
+
+                if (dll::Intersect(dummyRect, assetRect))
+                {
+                    castle_ok = false;
+                    break;
+                }
+            }
+        }
+
+        if (HumanCastle)
+        {
+            FRECT dummyRect{ FPOINT(dummy->start.x,dummy->start.y),FPOINT(dummy->end.x,dummy->start.y),
+                FPOINT(dummy->start.x,dummy->end.y),FPOINT(dummy->end.x,dummy->end.y) };
+            FRECT assetRect{ FPOINT(HumanCastle->start.x,HumanCastle->start.y),FPOINT(HumanCastle->end.x,
+                HumanCastle->start.y), FPOINT(HumanCastle->start.x, HumanCastle->end.y),
+                FPOINT(HumanCastle->end.x,HumanCastle->end.y) };
+            if (dll::Intersect(dummyRect, assetRect))castle_ok = false;
+        }
+
+        if (castle_ok)vMines.push_back(dummy);
+    }
+
+    
 }
 
 D2D1_RECT_F MoveViewPort(dirs to_where)
@@ -353,10 +459,23 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->SetEdges();
                 }
             }
+            if (!vMines.empty())
+            {
+                for (int i = 0; i < vMines.size(); ++i)
+                {
+                    vMines[i]->start.x += 5.0f;
+                    vMines[i]->SetEdges();
+                }
+            }
             if (HumanCastle)
             {
                 HumanCastle->start.x += 5.0f;
                 HumanCastle->SetEdges();
+            }
+            if (OrcCastle)
+            {
+                OrcCastle->start.x += 5.0f;
+                OrcCastle->SetEdges();
             }
         }
         break;
@@ -374,10 +493,23 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->SetEdges();
                 }
             }
+            if (!vMines.empty())
+            {
+                for (int i = 0; i < vMines.size(); ++i)
+                {
+                    vMines[i]->start.x -= 5.0f;
+                    vMines[i]->SetEdges();
+                }
+            }
             if (HumanCastle)
             {
                 HumanCastle->start.x -= 5.0f;
                 HumanCastle->SetEdges();
+            }
+            if (OrcCastle)
+            {
+                OrcCastle->start.x -= 5.0f;
+                OrcCastle->SetEdges();
             }
         }
         break;
@@ -395,10 +527,23 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->SetEdges();
                 }
             }
+            if (!vMines.empty())
+            {
+                for (int i = 0; i < vMines.size(); ++i)
+                {
+                    vMines[i]->start.y += 5.0f;
+                    vMines[i]->SetEdges();
+                }
+            }
             if (HumanCastle)
             {
                 HumanCastle->start.y += 5.0f;
                 HumanCastle->SetEdges();
+            }
+            if (OrcCastle)
+            {
+                OrcCastle->start.y += 5.0f;
+                OrcCastle->SetEdges();
             }
         }
         break;
@@ -416,10 +561,23 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                     vAssets[i]->SetEdges();
                 }
             }
+            if (!vMines.empty())
+            {
+                for (int i = 0; i < vMines.size(); ++i)
+                {
+                    vMines[i]->start.y -= 5.0f;
+                    vMines[i]->SetEdges();
+                }
+            }
             if (HumanCastle)
             {
                 HumanCastle->start.y -= 5.0f;
                 HumanCastle->SetEdges();
+            }
+            if (OrcCastle)
+            {
+                OrcCastle->start.y -= 5.0f;
+                OrcCastle->SetEdges();
             }
         }
         break;
@@ -1378,7 +1536,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             if (GetAssetsViewPort(HumanCastle, View))
                 Draw->DrawBitmap(bmpHCastle[aframe], Resizer(bmpHCastle[aframe], HumanCastle->start.x, HumanCastle->start.y));
         }
-
+        if (OrcCastle)Draw->DrawBitmap(bmpOCastle, D2D1::RectF(OrcCastle->start.x, OrcCastle->start.y,
+            OrcCastle->end.x, OrcCastle->end.y));
+        if (!vMines.empty())
+        {
+            for (int i = 0; i < vMines.size(); ++i)
+                Draw->DrawBitmap(bmpMine[vMines[i]->GetFrame()], D2D1::RectF(vMines[i]->start.x, vMines[i]->start.y,
+                    vMines[i]->end.x, vMines[i]->end.y));
+        }
 
         Draw->EndDraw();
     }
