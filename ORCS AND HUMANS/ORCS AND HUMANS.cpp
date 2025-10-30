@@ -159,6 +159,8 @@ std::vector<dll::ASSETS*> vMines;
 dll::ASSETS* HumanCastle{ nullptr };
 dll::ASSETS* OrcCastle{ nullptr };
 
+std::vector<dll::UNITS*>vHumanArmy;
+std::vector<dll::UNITS*>vOrcArmy;
 
 ////////////////////////////////////////////////////////
 
@@ -310,6 +312,11 @@ void InitGame()
     ClearMem(&HumanCastle);
     ClearMem(&OrcCastle);
 
+    if (!vHumanArmy.empty())for (int i = 0; i < vHumanArmy.size(); ++i)ClearMem(&vHumanArmy[i]);
+    if (!vOrcArmy.empty())for (int i = 0; i < vOrcArmy.size(); ++i)ClearMem(&vOrcArmy[i]);
+
+    /////////////////////////////////////////
+
     bool castle_ok{ false };
     while (!castle_ok)
     {
@@ -438,7 +445,23 @@ void InitGame()
         if (castle_ok)vMines.push_back(dummy);
     }
 
-    
+    //////////////////////////////////////
+
+    if (HumanCastle)
+    {
+        if (HumanCastle->center.y <= scr_height / 2)vHumanArmy.push_back(dll::UnitFactory(unit_type::peasant,
+            (float)(RandGen(0, 300)), ground - (float)(RandGen(20, 100))));
+        else vHumanArmy.push_back(dll::UnitFactory(unit_type::peasant,
+            (float)(RandGen(0, 300)), sky + (float)(RandGen(20, 100))));
+    }
+    if (OrcCastle)
+    {
+        if (OrcCastle->center.y <= scr_height / 2)vOrcArmy.push_back(dll::UnitFactory(unit_type::peon,
+            (float)(RandGen(800, 1100)), ground - (float)(RandGen(20, 100))));
+        else vOrcArmy.push_back(dll::UnitFactory(unit_type::peon,
+            (float)(RandGen(800, 1100)), sky + (float)(RandGen(20, 100))));
+    }
+
 }
 
 D2D1_RECT_F MoveViewPort(dirs to_where)
@@ -477,6 +500,28 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                 OrcCastle->start.x += 5.0f;
                 OrcCastle->SetEdges();
             }
+            if (!vHumanArmy.empty())
+            {
+                for (int i = 0; i < vHumanArmy.size(); ++i)
+                {
+                    if (vHumanArmy[i]->dir == dirs::stop)
+                    {
+                        vHumanArmy[i]->start.x += 5.0f;
+                        vHumanArmy[i]->SetEdges();
+                    }
+                }
+            }
+            if (!vOrcArmy.empty())
+            {
+                for (int i = 0; i < vOrcArmy.size(); ++i)
+                {
+                    if (vOrcArmy[i]->dir == dirs::stop)
+                    {
+                        vOrcArmy[i]->start.x += 5.0f;
+                        vOrcArmy[i]->SetEdges();
+                    }
+                }
+            }
         }
         break;
 
@@ -510,6 +555,28 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
             {
                 OrcCastle->start.x -= 5.0f;
                 OrcCastle->SetEdges();
+            }
+            if (!vHumanArmy.empty())
+            {
+                for (int i = 0; i < vHumanArmy.size(); ++i)
+                {
+                    if (vHumanArmy[i]->dir == dirs::stop)
+                    {
+                        vHumanArmy[i]->start.x -= 5.0f;
+                        vHumanArmy[i]->SetEdges();
+                    }
+                }
+            }
+            if (!vOrcArmy.empty())
+            {
+                for (int i = 0; i < vOrcArmy.size(); ++i)
+                {
+                    if (vOrcArmy[i]->dir == dirs::stop)
+                    {
+                        vOrcArmy[i]->start.x -= 5.0f;
+                        vOrcArmy[i]->SetEdges();
+                    }
+                }
             }
         }
         break;
@@ -545,6 +612,28 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
                 OrcCastle->start.y += 5.0f;
                 OrcCastle->SetEdges();
             }
+            if (!vHumanArmy.empty())
+            {
+                for (int i = 0; i < vHumanArmy.size(); ++i)
+                {
+                    if (vHumanArmy[i]->dir == dirs::stop)
+                    {
+                        vHumanArmy[i]->start.y += 5.0f;
+                        vHumanArmy[i]->SetEdges();
+                    }
+                }
+            }
+            if (!vOrcArmy.empty())
+            {
+                for (int i = 0; i < vOrcArmy.size(); ++i)
+                {
+                    if (vOrcArmy[i]->dir == dirs::stop)
+                    {
+                        vOrcArmy[i]->start.y += 5.0f;
+                        vOrcArmy[i]->SetEdges();
+                    }
+                }
+            }
         }
         break;
 
@@ -578,6 +667,28 @@ D2D1_RECT_F MoveViewPort(dirs to_where)
             {
                 OrcCastle->start.y -= 5.0f;
                 OrcCastle->SetEdges();
+            }
+            if (!vHumanArmy.empty())
+            {
+                for (int i = 0; i < vHumanArmy.size(); ++i)
+                {
+                    if (vHumanArmy[i]->dir == dirs::stop)
+                    {
+                        vHumanArmy[i]->start.y -= 5.0f;
+                        vHumanArmy[i]->SetEdges();
+                    }
+                }
+            }
+            if (!vOrcArmy.empty())
+            {
+                for (int i = 0; i < vOrcArmy.size(); ++i)
+                {
+                    if (vOrcArmy[i]->dir == dirs::stop)
+                    {
+                        vOrcArmy[i]->start.y -= 5.0f;
+                        vOrcArmy[i]->SetEdges();
+                    }
+                }
             }
         }
         break;
@@ -645,6 +756,55 @@ bool GetAssetsViewPort(dll::ASSETS* which,D2D1_RECT_F& AssetViewPort)
         {
             AssetViewPort.top = which->start.y;
             AssetViewPort.bottom = which->end.y;
+            in_height = true;
+        }
+    }
+
+    if (in_width && in_height)in_viewport = true;
+
+    return in_viewport;
+}
+bool GetUnitViewPort(dll::UNITS* which, D2D1_RECT_F& UnitViewPort)
+{
+    bool in_viewport = false;
+
+    bool in_width = false;
+    bool in_height = false;
+
+    if (which->start.x <= ViewPort.start.x + relative_x)
+    {
+        if (which->end.x > ViewPort.start.x + relative_x)
+        {
+            UnitViewPort.left = which->start.x;
+            UnitViewPort.right = which->end.x;
+            in_width = true;
+        }
+    }
+    else
+    {
+        if (which->start.x < ViewPort.end.x + relative_x)
+        {
+            UnitViewPort.left = which->start.x;
+            UnitViewPort.right = which->end.x;
+            in_width = true;
+        }
+    }
+
+    if (which->start.y <= ViewPort.start.y + relative_y)
+    {
+        if (which->end.y > ViewPort.start.y + relative_y)
+        {
+            UnitViewPort.top = which->start.y;
+            UnitViewPort.bottom = which->end.y;
+            in_height = true;
+        }
+    }
+    else
+    {
+        if (which->start.y < ViewPort.end.y + relative_y)
+        {
+            UnitViewPort.top = which->start.y;
+            UnitViewPort.bottom = which->end.y;
             in_height = true;
         }
     }
@@ -1541,8 +1701,177 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         if (!vMines.empty())
         {
             for (int i = 0; i < vMines.size(); ++i)
-                Draw->DrawBitmap(bmpMine[vMines[i]->GetFrame()], D2D1::RectF(vMines[i]->start.x, vMines[i]->start.y,
-                    vMines[i]->end.x, vMines[i]->end.y));
+            {
+                D2D1_RECT_F View{};
+
+                if (GetAssetsViewPort(vAssets[i], View) && View.top >= 50.0f)
+                    Draw->DrawBitmap(bmpMine[vMines[i]->GetFrame()], D2D1::RectF(vMines[i]->start.x, vMines[i]->start.y,
+                        vMines[i]->end.x, vMines[i]->end.y));
+            }
+        }
+
+        if (!vHumanArmy.empty())
+        {
+            for (int i = 0; i < vHumanArmy.size(); ++i)
+            {
+                D2D1_RECT_F View{};
+                
+                if (GetUnitViewPort(vHumanArmy[i], View) && View.top >= 50.0f)
+                {
+                    switch (vHumanArmy[i]->type)
+                    {
+                    case unit_type::peasant:
+                        if (vHumanArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHWorkerR[aframe], Resizer(bmpHWorkerR[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else if (vHumanArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHWorkerL[aframe], Resizer(bmpHWorkerL[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpHWorkerR[0], Resizer(bmpHWorkerR[0], vHumanArmy[i]->start.x,
+                            vHumanArmy[i]->start.y));
+                        break;
+
+                    case unit_type::warrior:
+                        if (vHumanArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHWarriorR[aframe], Resizer(bmpHWarriorR[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else if (vHumanArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHWarriorL[aframe], Resizer(bmpHWarriorL[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpHWarriorR[0], Resizer(bmpHWarriorR[0], vHumanArmy[i]->start.x,
+                            vHumanArmy[i]->start.y));
+                        break;
+
+                    case unit_type::archer:
+                        if (vHumanArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHArcherR[aframe], Resizer(bmpHArcherR[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else if (vHumanArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHArcherL[aframe], Resizer(bmpHArcherL[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpHArcherR[0], Resizer(bmpHArcherR[0], vHumanArmy[i]->start.x,
+                            vHumanArmy[i]->start.y));
+                        break;
+
+                    case unit_type::knight:
+                        if (vHumanArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHKnightR[aframe], Resizer(bmpHKnightR[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else if (vHumanArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpHKnightL[aframe], Resizer(bmpHKnightL[aframe], vHumanArmy[i]->start.x,
+                                vHumanArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpHKnightR[0], Resizer(bmpHKnightR[0], vHumanArmy[i]->start.x,
+                            vHumanArmy[i]->start.y));
+                        break;
+
+                    }
+                }
+            }
+        }
+        if (!vOrcArmy.empty())
+        {
+            for (int i = 0; i < vOrcArmy.size(); ++i)
+            {
+                D2D1_RECT_F View{};
+
+                if (GetUnitViewPort(vOrcArmy[i], View) && View.top >= 50.0f)
+                {
+                    switch (vOrcArmy[i]->type)
+                    {
+                    case unit_type::peon:
+                        if (vOrcArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vOrcArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOWorkerR[aframe], Resizer(bmpOWorkerR[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else if (vOrcArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vOrcArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOWorkerL[aframe], Resizer(bmpOWorkerL[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpOWorkerL[0], Resizer(bmpOWorkerL[0], vOrcArmy[i]->start.x,
+                            vOrcArmy[i]->start.y));
+                        break;
+
+                    case unit_type::orc_warrior:
+                        if (vOrcArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vOrcArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOWarriorR[aframe], Resizer(bmpOWarriorR[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else if (vOrcArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vOrcArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOWarriorL[aframe], Resizer(bmpOWarriorL[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpOWarriorL[0], Resizer(bmpOWarriorL[0], vOrcArmy[i]->start.x,
+                            vOrcArmy[i]->start.y));
+                        break;
+
+                    case unit_type::orc_archer:
+                        if (vOrcArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vHumanArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOArcherR[aframe], Resizer(bmpOArcherR[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else if (vOrcArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vOrcArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOArcherL[aframe], Resizer(bmpOArcherL[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpOArcherL[0], Resizer(bmpOArcherL[0], vOrcArmy[i]->start.x,
+                            vOrcArmy[i]->start.y));
+                        break;
+
+                    case unit_type::orc_knight:
+                        if (vOrcArmy[i]->dir == dirs::right)
+                        {
+                            int aframe = vOrcArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOKnightR[aframe], Resizer(bmpOKnightR[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else if (vOrcArmy[i]->dir == dirs::left)
+                        {
+                            int aframe = vOrcArmy[i]->GetFrame();
+                            Draw->DrawBitmap(bmpOKnightL[aframe], Resizer(bmpOKnightL[aframe], vOrcArmy[i]->start.x,
+                                vOrcArmy[i]->start.y));
+                        }
+                        else Draw->DrawBitmap(bmpOKnightL[0], Resizer(bmpOKnightL[0], vOrcArmy[i]->start.x,
+                            vOrcArmy[i]->start.y));
+                        break;
+                    }
+                }
+            }
         }
 
         Draw->EndDraw();

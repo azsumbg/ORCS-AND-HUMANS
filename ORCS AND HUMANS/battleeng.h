@@ -47,6 +47,19 @@ struct ACTPARAMS
 
 namespace dll
 {
+	class PLATFORM_API EXCEPTION
+	{
+	private:
+		const LPCWSTR error1{ L"Index out of bounds !" };
+		const LPCWSTR error2{ L"Error in base pointer !" };
+
+		int error_occurred{ -1 };
+
+	public:
+		EXCEPTION(int what);
+
+		LPCWSTR GetError()const;
+	};
 	template<typename T> class BAG
 	{
 	private:
@@ -147,19 +160,20 @@ namespace dll
 
 		void erase(size_t index)
 		{
-			if (index >= next_pos)return;
+			if (index >= next_pos)throw (EXCEPTION(1));
 
 			if (m_ptr)
 			{
 				for (size_t count = index; count < next_pos - 1; ++count)m_ptr[count] = m_ptr[count + 1];
 
 			}
+			else throw (EXCEPTION(2));
 		}
 
 		T& operator [] (size_t index)
 		{
-			if (index >= next_pos) throw std::runtime_error("Wrong index !");
-			if (!m_ptr) throw std::runtime_error("Invalid data pointer !");
+			if (index >= next_pos) throw (EXCEPTION(1));
+			if (!m_ptr) throw (EXCEPTION(2));
 
 			return m_ptr[index];
 		}
@@ -183,8 +197,10 @@ namespace dll
 					{
 						for (size_t count = 0; count < other.next_pos; ++count)m_ptr[count] = other[count];
 					}
+					else throw (EXCEPTION(2));
 				}
 			}
+			else throw (EXCEPTION(2));
 		}
 	};
 
