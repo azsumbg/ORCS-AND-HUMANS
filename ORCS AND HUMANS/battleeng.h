@@ -78,7 +78,8 @@ namespace dll
 			max_size = other.max_size;
 			next_pos = other.next_pos;
 
-			for (size_t count = 0; count < next_pos; count++)m_ptr[count] = other.m_ptr[count];
+			if (m_ptr)
+				for (size_t count = 0; count < next_pos; count++)m_ptr[count] = other.m_ptr[count];
 		}
 
 		~BAG()
@@ -151,13 +152,13 @@ namespace dll
 
 		void push_front(T element)
 		{
-			(*m_ptr) = element;
+			if (m_ptr)(*m_ptr) = element;
 		}
 		void push_front(T* element)
 		{
-			(*m_ptr) = (*element);
+			if (m_ptr)(*m_ptr) = (*element);
 		}
-
+		
 		void erase(size_t index)
 		{
 			if (index >= next_pos)throw (EXCEPTION(1));
@@ -165,7 +166,7 @@ namespace dll
 			if (m_ptr)
 			{
 				for (size_t count = index; count < next_pos - 1; ++count)m_ptr[count] = m_ptr[count + 1];
-
+				--next_pos;
 			}
 			else throw (EXCEPTION(2));
 		}
@@ -196,6 +197,7 @@ namespace dll
 					if (m_ptr)
 					{
 						for (size_t count = 0; count < other.next_pos; ++count)m_ptr[count] = other[count];
+						next_pos = other.next_pos;
 					}
 					else throw (EXCEPTION(2));
 				}
@@ -325,7 +327,7 @@ namespace dll
 		int GetFrame();
 		int GetMyNumber() const;
 
-		void Move(float gear, BAG<ASSETS>obstacles);
+		void Move(float gear, BAG<ASSETS>& obstacles);
 		int Attack();
 
 		friend PLATFORM_API ACTPARAMS AINextMove(UNITS my_unit, BAG<UNITS>& BadArmy, BAG<ASSETS>& Obstacles, ACTPARAMS params);

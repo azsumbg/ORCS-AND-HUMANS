@@ -143,8 +143,6 @@ int orc_gold = 0;
 int human_lumber = 0;
 int orc_lumber = 0;
 
-int active_unit_number = -1;
-
 int scale_x{ 0 };
 int scale_y{ 0 };
 
@@ -161,6 +159,8 @@ dll::ASSETS* OrcCastle{ nullptr };
 
 std::vector<dll::UNITS*>vHumanArmy;
 std::vector<dll::UNITS*>vOrcArmy;
+
+dll::UNITS* active_unit{ nullptr };
 
 ////////////////////////////////////////////////////////
 
@@ -276,8 +276,6 @@ void InitGame()
     human_lumber = 0;
     orc_lumber = 0;
 
-    active_unit_number = -1;
-
     if (!vAssets.empty())for (int i = 0; i < vAssets.size(); ++i)ClearMem(&vAssets[i]);
     for (int i = 0; i < 50; ++i)
     {
@@ -311,6 +309,8 @@ void InitGame()
 
     ClearMem(&HumanCastle);
     ClearMem(&OrcCastle);
+
+    ClearMem(&active_unit);
 
     if (!vHumanArmy.empty())for (int i = 0; i < vHumanArmy.size(); ++i)ClearMem(&vHumanArmy[i]);
     if (!vOrcArmy.empty())for (int i = 0; i < vOrcArmy.size(); ++i)ClearMem(&vOrcArmy[i]);
@@ -1012,6 +1012,49 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         }
         break;
 
+    case WM_LBUTTONDOWN:
+        if (!vHumanArmy.empty())
+        {
+            bool unit_found = false;
+
+            for (int i = 0; i < vHumanArmy.size(); ++i)
+            {
+                if (LOWORD(lParam) * scale_x >= vHumanArmy[i]->start.x
+                    && LOWORD(lParam) * scale_x <= vHumanArmy[i]->end.x
+                    && HIWORD(lParam) * scale_y >= vHumanArmy[i]->start.y
+                    && HIWORD(lParam) * scale_y <= vHumanArmy[i]->end.y)
+                {
+                    active_unit = vHumanArmy[i];
+                    unit_found = true;
+                    break;
+                }
+            }
+
+            if (unit_found)break;
+        }
+        active_unit = nullptr;
+        break;
+
+    case WM_RBUTTONDOWN:
+        if (!vHumanArmy.empty() && active_unit)
+        {
+            active_unit->SetPath((float)(LOWORD(lParam)* (int)scale_x), (float)(HIWORD(lParam)* (int)scale_y));
+
+            dll::BAG<dll::ASSETS> bObstacles(vAssets.size());
+
+            if (!vAssets.empty())
+                for (int i = 0; i < vAssets.size(); ++i)
+                {
+                    dll::ASSETS dummy = (*(vAssets[i]));
+                    bObstacles.push_back(dummy);
+                }
+
+            
+            active_unit->current_action = actions::move;
+            active_unit->Move(3.0f, bObstacles);
+
+        }
+        break;
 
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
@@ -1628,6 +1671,51 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         /////////////////////////////////////////////////////////////////
 
+        if (!vHumanArmy.empty())
+        {
+            dll::BAG<dll::ASSETS> bObstacles(vAssets.size());
+
+            if (!vAssets.empty())
+                for (int i = 0; i < vAssets.size(); ++i)
+                {
+                    dll::ASSETS dummy = (*(vAssets[i]));
+                    bObstacles.push_back(dummy);
+                }
+            
+            for (int i = 0; i < vHumanArmy.size(); ++i)
+            {
+                switch (vHumanArmy[i]->current_action)
+                {
+                case actions::move:
+                    vHumanArmy[i]->Move(3.0f, bObstacles);
+                    break;
+
+                case actions::harvest:
+
+                    break;
+                }
+            }
+            
+            
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // DRAW THINGS ***********************************************
 
@@ -1789,6 +1877,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                         break;
 
                     }
+
+                    if (vHumanArmy[i] == active_unit)
+                        Draw->DrawEllipse(D2D1::Ellipse(D2D1::Point2F(active_unit->center.x, active_unit->center.y),
+                            active_unit->radiusX + 5.0f, active_unit->radiusY + 5.0f), txtBrush, 3.0f);
                 }
             }
         }
