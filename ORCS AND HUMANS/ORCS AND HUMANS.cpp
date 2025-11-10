@@ -1674,6 +1674,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         if (!vHumanArmy.empty())
         {
             dll::BAG<dll::ASSETS> bObstacles(vAssets.size());
+            dll::BAG<dll::UNITS> bOrcs(vOrcArmy.size());
+            
+            
+            ACTPARAMS current_assets{}; ///MUST SEE THE DEFINITION OF AINextAction() !!!!!!!!!!!!!!!!!!!
+            
 
             if (!vAssets.empty())
                 for (int i = 0; i < vAssets.size(); ++i)
@@ -1681,9 +1686,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                     dll::ASSETS dummy = (*(vAssets[i]));
                     bObstacles.push_back(dummy);
                 }
+
+            if (!vOrcArmy.empty())
+                for (int i = 0; i < vOrcArmy.size(); ++i)
+                {
+                    dll::UNITS dummy = (*(vOrcArmy[i]));
+                    bOrcs.push_back(dummy);
+                }
             
             for (int i = 0; i < vHumanArmy.size(); ++i)
             {
+                ACTPARAMS AInext_action = dll::AINextMove(*vHumanArmy[i], bOrcs, bObstacles, current_assets);
+
+                vHumanArmy[i]->current_action = AInext_action.next_action;
+
                 switch (vHumanArmy[i]->current_action)
                 {
                 case actions::move:
